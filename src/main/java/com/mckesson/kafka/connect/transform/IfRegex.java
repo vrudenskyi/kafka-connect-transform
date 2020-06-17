@@ -21,8 +21,9 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.common.Configurable;
 import org.apache.kafka.common.config.ConfigDef;
-import org.apache.kafka.common.config.ConfigDef.ValidString;
 import org.apache.kafka.connect.transforms.util.SimpleConfig;
+
+import com.mckesson.kafka.connect.utils.ConfigUtils;
 
 /**
  * Regexp based 'if' condition  
@@ -32,9 +33,9 @@ public class IfRegex implements Configurable {
 
   public static final String IF_CONFIG = "if";
   public static final String IF_MODE_CONFIG = "if_mode";
-  public static final String IF_MODE_DEFAULT = "find";
+  public static final String IF_MODE_DEFAULT = IfMode.FIND.name();
   /*for future use  to me able to implement method: boolean if*(ConnectRecord)*/
-  public static final String IF_DATA_CONFIG = "if_data"; 
+  public static final String IF_DATA_CONFIG = "if_data";
   public static final String IF_DATA_DEFAULT = "${VALUE}";
 
   private IfMode ifMode;
@@ -49,7 +50,7 @@ public class IfRegex implements Configurable {
 
   public static final ConfigDef CONFIG_DEF = new ConfigDef()
       .define(IF_CONFIG, ConfigDef.Type.STRING, null, ConfigDef.Importance.HIGH, "Regexp or value for if condition")
-      .define(IF_MODE_CONFIG, ConfigDef.Type.STRING, IF_MODE_DEFAULT, ValidString.in("match", "find"), ConfigDef.Importance.LOW,
+      .define(IF_MODE_CONFIG, ConfigDef.Type.STRING, IF_MODE_DEFAULT, ConfigUtils.validEnum(IfMode.class), ConfigDef.Importance.LOW,
           "if condition mode: 'match', 'find', 'contain', Default: 'find'")
       .define(IF_DATA_CONFIG, ConfigDef.Type.STRING, IF_DATA_DEFAULT, ConfigDef.Importance.LOW, "EL for data");
 
@@ -57,7 +58,7 @@ public class IfRegex implements Configurable {
   public void configure(Map<String, ?> props) {
     final SimpleConfig config = new SimpleConfig(CONFIG_DEF, props);
 
-    ifMode = IfMode.valueOf(config.getString(IF_MODE_CONFIG).toUpperCase());
+    ifMode = ConfigUtils.getEnum(config, IF_MODE_CONFIG, IfMode.class);
     ifString = config.getString(IF_CONFIG);
     ifData = config.getString(IF_DATA_CONFIG);
 
@@ -77,11 +78,10 @@ public class IfRegex implements Configurable {
       case EQ:
         result = ifEq(message);
         break;
-        
+
       case CONTAIN:
         result = ifContains(message);
         break;
-        
 
       case MATCH:
         result = ifMatches(message);
@@ -97,7 +97,7 @@ public class IfRegex implements Configurable {
   }
 
   private boolean ifContains(String message) {
-    return ifString != null && StringUtils.isNotBlank(message) &&  message.contains(ifString);
+    return ifString != null && StringUtils.isNotBlank(message) && message.contains(ifString);
   }
 
   private boolean ifMatches(String message) {
@@ -111,12 +111,9 @@ public class IfRegex implements Configurable {
   private boolean ifFind(String message) {
     return ifPattern != null && ifPattern.matcher(message).find();
   }
- 
+
   public String getIfData() {
     return ifData;
   }
-
-  
-  
 
 }
