@@ -101,7 +101,7 @@ public class RegexRouter<R extends ConnectRecord<R>> extends AppyToTransformer<R
     }
 
     // no matching rules + no fallbackTopic => return as-is
-    log.debug("No matching rules, no fallback topic. Return as-is");
+    log.trace("No matching rules, no fallback topic. Return as-is");
     return record;
 
   }
