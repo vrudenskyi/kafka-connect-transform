@@ -54,6 +54,14 @@ public class IfRegexTest {
     
     ifConf.put(IfRegex.IF_MODE_CONFIG, "Find");
     ifRegex.configure(ifConf);
+    
+    ifConf.put(IfRegex.IF_MODE_CONFIG, "In");
+    ifRegex.configure(ifConf);
+    
+    ifConf.put(IfRegex.IF_MODE_CONFIG, "IN");
+    ifRegex.configure(ifConf);
+    
+    
   }
   
   @Test
@@ -70,6 +78,25 @@ public class IfRegexTest {
     Assert.assertFalse(ifRegex.checkIf("xxx"));
     
   }
+  
+  
+  @Test
+  public void testIn() {
+    
+    IfRegex ifRegex = new IfRegex();
+    Map<String, Object> ifConf = new HashMap<>();
+    ifConf.put(IfRegex.IF_MODE_CONFIG, "in");
+    ifConf.put(IfRegex.IF_CONFIG, "111,222,333,xxx,555");
+        ifRegex.configure(ifConf);
+    
+    Assert.assertTrue(ifRegex.checkIf("111"));
+    Assert.assertTrue(ifRegex.checkIf("xxx"));
+    Assert.assertTrue(ifRegex.checkIf("555"));
+    Assert.assertFalse(ifRegex.checkIf("3333"));
+    Assert.assertFalse(ifRegex.checkIf("yyyy"));
+    
+  }
+  
 
 
 

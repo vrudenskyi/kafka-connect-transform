@@ -15,12 +15,16 @@
  */
 package com.mckesson.kafka.connect.transform;
 
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.common.Configurable;
 import org.apache.kafka.common.config.ConfigDef;
+import org.apache.kafka.common.config.ConfigDef.Type;
 import org.apache.kafka.connect.transforms.util.SimpleConfig;
 
 import com.mckesson.kafka.connect.utils.ConfigUtils;
@@ -36,16 +40,20 @@ public class IfRegex implements Configurable {
   public static final String IF_MODE_DEFAULT = IfMode.FIND.name();
   /*for future use  to me able to implement method: boolean if*(ConnectRecord)*/
   public static final String IF_DATA_CONFIG = "if_data";
-  public static final String IF_DATA_DEFAULT = "${VALUE}";
+  public static final String IF_DATA_DEFAULT = null;
 
-  private IfMode ifMode;
+  
   private String ifString;
+  private Pattern ifPattern;
+  private Set<String> ifSet;
+
+  
+  private IfMode ifMode;
   private String ifData;
 
-  private Pattern ifPattern;
-
+  
   private enum IfMode {
-    MATCH, FIND, EQ, CONTAIN
+    MATCH, FIND, EQ, CONTAIN, IN
   };
 
   public static final ConfigDef CONFIG_DEF = new ConfigDef()
@@ -61,10 +69,16 @@ public class IfRegex implements Configurable {
     ifMode = ConfigUtils.getEnum(config, IF_MODE_CONFIG, IfMode.class);
     ifString = config.getString(IF_CONFIG);
     ifData = config.getString(IF_DATA_CONFIG);
+    
 
     if (StringUtils.isNoneBlank(ifString) && (ifMode.equals(IfMode.FIND) || ifMode.equals(IfMode.MATCH))) {
       ifPattern = Pattern.compile(ifString);
     }
+    
+    if (StringUtils.isNoneBlank(ifString) && ifMode.equals(IfMode.IN)) {
+      ifSet = new HashSet((List<String>) ConfigDef.parseType(IF_CONFIG, ifString, Type.LIST));
+    }
+    
 
   }
 
@@ -90,10 +104,19 @@ public class IfRegex implements Configurable {
       case FIND:
         result = ifFind(message);
         break;
+        
+      case IN:
+        result = ifIn(message);
+        break;
+        
     }
 
     return result;
 
+  }
+  
+  private boolean ifIn(String message) {
+    return ifSet != null && StringUtils.isNotBlank(message) &&  ifSet.contains(message);
   }
 
   private boolean ifContains(String message) {
@@ -112,8 +135,11 @@ public class IfRegex implements Configurable {
     return ifPattern != null && ifPattern.matcher(message).find();
   }
 
-  public String getIfData() {
-    return ifData;
+  public String getIfData(String defaultValue) {
+    return ifData != null ? ifData : defaultValue;
   }
-
+  
+  public String getIfData() {
+    return getIfData("${VALUE}");
+  }
 }

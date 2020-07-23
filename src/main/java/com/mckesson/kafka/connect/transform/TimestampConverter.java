@@ -44,7 +44,7 @@ public class TimestampConverter<R extends ConnectRecord<R>> extends AppyToTransf
 
   public static final String TARGET_PATTERN_CONFIG = "target.pattern";
   public static final String TARGET_PATTERN_DEFAULT = "yyyy-MM-dd'T'HH:mm:ss.SSSX";
-  
+
   public static final String TARGET_ZONE_ID_CONFIG = "target.zoneId";
   public static final String TARGET_ZONE_ID_DEFAULT = "UTC";
 
@@ -53,33 +53,31 @@ public class TimestampConverter<R extends ConnectRecord<R>> extends AppyToTransf
 
   public static final String SOURCE_DEFAULT_CONFIG = "source.default.ms";
   public static final long SOURCE_DEFAULT_DEFAULT = -1;
-  
+
   public static final String TARGET_DEFAULT_CONFIG = "target.default.ms";
   public static final long TARGET_DEFAULT_DEFAULT = -1;
 
   public static final String SOURCE_PATTERN_CONFIG = "source.pattern";
   public static final String SOURCE_PATTERN_DEFAULT = "yyyy-MM-dd'T'HH:mm:ss.SSSX";
-  
+
   public static final String SOURCE_ZONE_ID_CONFIG = "source.zoneId";
   public static final String SOURCE_ZONE_ID_DEFAULT = "UTC";
-  
+
   public static final String IGNORE_PARSE_ERROR_CONFIG = "source.ignore.parse.error";
   public static final boolean IGNORE_PARSE_ERROR_DEFAULT = false;
-  
+
   public static final String CONDITION_CONFIG = "condition";
 
   private String sourceType;
   private DateTimeFormatter sourceFormat;
   private long sourceDefault;
-  
+
   private String targetType;
   private DateTimeFormatter targetFormat;
   private long targetDefault;
-  
+
   private IfRegex ifRegex;
   private boolean ignoreParseError;
-  
-  
 
   public static final ConfigDef CONFIG_DEF = new ConfigDef()
       .define(SOURCE_TYPE_CONFIG, ConfigDef.Type.STRING, SOURCE_TYPE_DEFAULT, ConfigDef.Importance.MEDIUM, "Source timestamp format: string or epoch")
@@ -101,33 +99,26 @@ public class TimestampConverter<R extends ConnectRecord<R>> extends AppyToTransf
 
     sourceType = config.getString(SOURCE_TYPE_CONFIG);
     sourceFormat = DateTimeFormatter.ofPattern(config.getString(SOURCE_PATTERN_CONFIG)).withZone(ZoneId.of(config.getString(SOURCE_ZONE_ID_CONFIG)));
-    
 
     targetType = config.getString(TARGET_TYPE_CONFIG);
     targetFormat = DateTimeFormatter.ofPattern(config.getString(TARGET_PATTERN_CONFIG)).withZone(ZoneId.of(config.getString(TARGET_ZONE_ID_CONFIG)));
-    
+
     sourceDefault = config.getLong(SOURCE_DEFAULT_CONFIG);
     targetDefault = config.getLong(TARGET_DEFAULT_CONFIG);
-    
+
     ignoreParseError = config.getBoolean(IGNORE_PARSE_ERROR_CONFIG);
-    
+
     this.ifRegex = new IfRegex();
     Map<String, Object> conditionConfig = config.originalsWithPrefix(CONDITION_CONFIG + ".");
     if (conditionConfig.size() > 0) {
       this.ifRegex.configure(conditionConfig);
-      
-    }
 
+    }
 
   }
 
   @Override
   public R apply(R record) {
-    //check condition first
-    if (ifRegex.ifConfigured() && !ifRegex.checkIf(ELUtils.getExprValue(ifRegex.getIfData(), record))) {
-      return record;
-    }
-
 
     Map<String, List<Object>> newValues = new HashMap<String, List<Object>>(applyToList.size());
     //read currentValues and transform
@@ -135,10 +126,21 @@ public class TimestampConverter<R extends ConnectRecord<R>> extends AppyToTransf
       List<Object> current = valuesFor(applyTo, record);
       if (current != null) {
         List<Object> transformed = new ArrayList<>(current.size());
+        boolean nothingTransformed = true;
+        //check condition first
         for (Object value : current) {
-          transformed.add(value == null ? null : transformTimestamp(value));
+          if (ifRegex.ifConfigured() && ifRegex.checkIf(ELUtils.getExprValue(ifRegex.getIfData(value.toString()), record))) {
+            transformed.add(value == null ? null : transformTimestamp(value));
+            nothingTransformed = false;
+          } else {
+            transformed.add(value == null ? null : value);
+          }
         }
-        newValues.put(applyTo, transformed);
+        if (!nothingTransformed) {
+          //if nothing in fact was transformed skip curent 'applyTo' value 
+          newValues.put(applyTo, transformed);
+        }
+
       }
     }
     return buildNewRecord(record, newValues);
@@ -161,7 +163,7 @@ public class TimestampConverter<R extends ConnectRecord<R>> extends AppyToTransf
             ts = DateTimeUtils.parseZonedDateTime(value.toString()).toInstant();
           } catch (Exception e1) {
             if (!ignoreParseError) {
-              throw e;  
+              throw e;
             }
             ts = this.targetDefault < 0 ? Instant.now() : Instant.ofEpochMilli(targetDefault);
           }
