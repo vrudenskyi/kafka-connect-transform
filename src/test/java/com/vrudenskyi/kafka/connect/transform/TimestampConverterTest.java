@@ -1,4 +1,4 @@
-package com.mckesson.kafka.connect.transform;
+package com.vrudenskyi.kafka.connect.transform;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -7,6 +7,9 @@ import java.util.Map;
 import org.apache.kafka.connect.sink.SinkRecord;
 import org.junit.Assert;
 import org.junit.Test;
+
+import com.vrudenskyi.kafka.connect.transform.IfRegex;
+import com.vrudenskyi.kafka.connect.transform.TimestampConverter;
 
 public class TimestampConverterTest {
   

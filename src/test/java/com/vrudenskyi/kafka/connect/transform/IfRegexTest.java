@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.mckesson.kafka.connect.transform;
+package com.vrudenskyi.kafka.connect.transform;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,6 +21,8 @@ import java.util.Map;
 import org.apache.kafka.common.config.ConfigException;
 import org.junit.Assert;
 import org.junit.Test;
+
+import com.vrudenskyi.kafka.connect.transform.IfRegex;
 
 public class IfRegexTest {
   

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.mckesson.kafka.connect.transform;
+package com.vrudenskyi.kafka.connect.transform;
 
 import java.util.Collections;
 import java.util.Map;
@@ -24,7 +24,7 @@ import org.apache.kafka.connect.transforms.Transformation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.mckesson.kafka.connect.utils.SyslogParser;
+import com.vrudensk.kafka.connect.utils.SyslogParser;
 
 public class ParseSyslog<R extends ConnectRecord<R>> implements Transformation<R> {
 

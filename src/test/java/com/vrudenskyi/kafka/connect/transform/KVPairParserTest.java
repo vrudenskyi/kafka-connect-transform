@@ -1,4 +1,4 @@
-package com.mckesson.kafka.connect.transform;
+package com.vrudenskyi.kafka.connect.transform;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -6,6 +6,9 @@ import java.util.Map;
 import org.apache.kafka.connect.sink.SinkRecord;
 import org.junit.Assert;
 import org.junit.Test;
+
+import com.vrudenskyi.kafka.connect.transform.CEF2Map;
+import com.vrudenskyi.kafka.connect.transform.KVPairParser;
 
 public class KVPairParserTest {
 

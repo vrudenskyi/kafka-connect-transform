@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.mckesson.kafka.connect.transform;
+package com.vrudenskyi.kafka.connect.transform;
 
 import java.time.Instant;
 import java.time.ZoneId;
@@ -31,8 +31,8 @@ import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.connect.connector.ConnectRecord;
 import org.apache.kafka.connect.transforms.util.SimpleConfig;
 
-import com.mckesson.kafka.connect.utils.DateTimeUtils;
-import com.mckesson.kafka.connect.utils.ELUtils;
+import com.vrudensk.kafka.connect.utils.DateTimeUtils;
+import com.vrudensk.kafka.connect.utils.ELUtils;
 
 public class TimestampConverter<R extends ConnectRecord<R>> extends AppyToTransformer<R> implements Configurable {
 

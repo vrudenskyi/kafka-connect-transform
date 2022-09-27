@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.mckesson.kafka.connect.transform;
+package com.vrudenskyi.kafka.connect.transform;
 
 import java.util.HashSet;
 import java.util.List;
@@ -27,7 +27,7 @@ import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.common.config.ConfigDef.Type;
 import org.apache.kafka.connect.transforms.util.SimpleConfig;
 
-import com.mckesson.kafka.connect.utils.ConfigUtils;
+import com.vrudensk.kafka.connect.utils.ConfigUtils;
 
 /**
  * Regexp based 'if' condition  

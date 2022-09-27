@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.mckesson.kafka.connect.transform;
+package com.vrudenskyi.kafka.connect.transform;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,7 +26,7 @@ import org.apache.kafka.common.config.ConfigException;
 import org.apache.kafka.connect.connector.ConnectRecord;
 import org.apache.kafka.connect.transforms.util.SimpleConfig;
 
-import com.mckesson.kafka.connect.utils.ELUtils;
+import com.vrudensk.kafka.connect.utils.ELUtils;
 
 /**
  * 'Translate' one value with another using translation map
