@@ -16,13 +16,18 @@
 package com.vrudenskyi.kafka.connect.transform;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.connect.connector.ConnectRecord;
 import org.apache.kafka.connect.data.Field;
+import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.data.Struct;
+import org.apache.kafka.connect.errors.ConnectException;
 import org.apache.kafka.connect.transforms.Transformation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,6 +76,11 @@ public class ToJson<R extends ConnectRecord<R>> implements Transformation<R> {
     JSON_MAPPER.setDateFormat(StdDateFormat.instance);
   }
 
+  private static final List<Schema.Type> SUPPORTED_VALUE_SCHEMA_TYPES;
+  static {
+    SUPPORTED_VALUE_SCHEMA_TYPES = Collections.unmodifiableList(Arrays.asList(Schema.Type.ARRAY, Schema.Type.MAP, Schema.Type.STRUCT));
+  }
+
   @Override
   public void configure(Map<String, ?> configs) {
     //TODO implement jsonMapper options
@@ -84,13 +94,31 @@ public class ToJson<R extends ConnectRecord<R>> implements Transformation<R> {
       return r;
     }
 
+    detectUnsupportedSchemaType(r.valueSchema());
+
     try {
-      return r.newRecord(r.topic(), r.kafkaPartition(), r.keySchema(), r.key(), r.valueSchema(), JSON_MAPPER.writeValueAsString(r.value()), r.timestamp());
+      return r.newRecord(r.topic(), r.kafkaPartition(), r.keySchema(), r.key(), Schema.STRING_SCHEMA, JSON_MAPPER.writeValueAsString(r.value()), r.timestamp());
     } catch (JsonProcessingException e) {
       log.trace("Failed to convert");
       r.headers().addString("error", e.getMessage());
     }
     return r;
+  }
+
+  private void detectUnsupportedSchemaType(Schema schema) {
+    if (!SUPPORTED_VALUE_SCHEMA_TYPES.contains(schema.type())) {
+      String specified;
+
+      if (schema.name() != null) {
+        specified = String.format("%s-%s", schema.type(), schema.name());
+      } else {
+        specified = String.format("%s", schema.type());
+      }
+      String message = String.format("Only supported schema types can be converted to JSON; specified [%s], supported %s", specified, SUPPORTED_VALUE_SCHEMA_TYPES);
+
+      throw new ConnectException(message);
+    }
+
   }
 
   @Override
